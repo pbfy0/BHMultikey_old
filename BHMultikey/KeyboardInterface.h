@@ -38,7 +38,7 @@ private:
 	struct input_packet packet;
 	int record_idx;
 
-	std::map<USHORT, char> *keymap;
+	std::map<USHORT, USHORT> *keymap;
 	BOOL up, down, left, right;
 	BOOL up_jump;
 	CHAR taunting;

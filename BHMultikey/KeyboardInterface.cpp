@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "KeyboardInterface.h"
+#include "KeyboardLights.h"
  
 #pragma comment(lib,"ws2_32.lib") //Winsock Library
 
@@ -87,96 +88,92 @@ void KeyboardInterface::HandleInput(USHORT keycode, BOOL keyPressed)
 	if (keymap != NULL && (*keymap)[keycode]) {
 		keycode = (*keymap)[keycode];
 	}
-	switch (keycode) {
+	UINT rchar = MapVirtualKey(keycode, MAPVK_VK_TO_CHAR);
+
+	if (rchar == 'W' || keycode == VK_UP) {
+		if (up_jump)
+			SendInput("Y", keyPressed);
+		up = keyPressed;
+		SendInput("A_LSY", up - down);
+	}
+	else if (rchar == 'S' || keycode == VK_DOWN) {
+		down = keyPressed;
+		SendInput("A_LSY", up - down);
+	}
+	else if (rchar == 'A' || keycode == VK_LEFT) {
+		left = keyPressed;
+		SendInput("A_LSX", right - left);
+	}
+	else if (rchar == 'D' || keycode == VK_RIGHT) {
+		right = keyPressed;
+		SendInput("A_LSX", right - left);
+	}
+	else if (keycode == VK_SHIFT) {
+		SendInput("RB", keyPressed);
+	}
+	else if (keycode == VK_ESCAPE) {
+		SendInput("START", keyPressed);
+	}
+	else {
+		switch (rchar) {
 		case ' ':
 			SendInput("Y", keyPressed);
-			//SetBtn(keyPressed, vjoy_id, 3);
 			break;
 		case 'H':
 		case 'V':
-			//SetBtn(keyPressed, vjoy_id, 5);
 			SendInput("LB", keyPressed);
 			break;
 		case 'J':
 		case 'C':
-			//SetBtn(keyPressed, vjoy_id, 1);
 			SendInput("A", keyPressed);
 			break;
 		case 'K':
 		case 'X':
-			//SetBtn(keyPressed, vjoy_id, 2);
 			SendInput("X", keyPressed);
 			break;
 		case 'L':
 		case 'Z':
-		case VK_SHIFT:
-			//SetBtn(keyPressed, 1, 6);
-			//SetAxis(keyPressed ? 0x8000 : 0x4000, vjoy_id, HID_USAGE_RZ);
 			SendInput("B", keyPressed);
-			break;
-		case 'W':
-		case VK_UP:
-			if(up_jump)
-				SendInput("Y", keyPressed);
-			up = keyPressed;
-			//SetAxis((1 + down - up) * 0x4000, vjoy_id, HID_USAGE_Y);
-			SendInput("A_LSY", up - down);
-			break;
-		case 'S':
-		case VK_DOWN:
-			down = keyPressed;
-			//SetAxis((1 + down - up) * 0x4000, vjoy_id, HID_USAGE_Y);
-			SendInput("A_LSY", up - down);
-			break;
-		case 'A':
-		case VK_LEFT:
-			left = keyPressed;
-			//SetAxis((1 + right - left) * 0x4000, vjoy_id, HID_USAGE_X);
-			SendInput("A_LSX", right - left);
-			break;
-		case 'D':
-		case VK_RIGHT:
-			right = keyPressed;
-			//SetAxis((1 + right - left) * 0x4000, vjoy_id, HID_USAGE_X);
-			SendInput("A_LSX", right - left);
-			break;
-		case VK_ESCAPE:
-			SendInput("START", keyPressed);
 			break;
 		case '\t':
 			SendInput("BACK", keyPressed);
 			break;
-		case VK_OEM_1: // semicolon
-			if(keyPressed)
+		case ';':
+			if (keyPressed)
 				up_jump = !up_jump;
+			//FlashKeyboardLight(handle, KEYBOARD_CAPS_LOCK_ON, keyPressed);
 			break;
-		case VK_OEM_5: // backslash
+		case '`':
 			if (!keyPressed) break;
 			if (keymap == NULL) {
-				keymap = new std::map<USHORT, char>;
+				keymap = new std::map<USHORT, USHORT>;
 				record_idx = 0;
-			} else {
+			}
+			else {
 				delete keymap;
 				keymap = NULL;
 				record_idx = -1;
 			}
 			break;
-	}
-	if (!taunting || (taunting == keycode && keyPressed == !taunting)) {
-		taunting = keyPressed ? keycode : 0;
-		switch (keycode) {
-			case '1':
-				SendInput("A_RSY", keyPressed);
-				break;
-			case '2':
-				SendInput("A_RSX", -keyPressed);
-				break;
-			case '3':
-				SendInput("A_RSX", keyPressed);
-				break;
-			case '4':
-				SendInput("A_RSY", -keyPressed);
-				break;
+		default:
+			if (!taunting || (taunting == rchar && !keyPressed)) {
+				taunting = keyPressed ? rchar : 0;
+				switch (rchar) {
+				case '1':
+					SendInput("A_RSY", keyPressed);
+					break;
+				case '2':
+					SendInput("A_RSX", -keyPressed);
+					break;
+				case '3':
+					SendInput("A_RSX", keyPressed);
+					break;
+				case '4':
+					SendInput("A_RSY", -keyPressed);
+					break;
+				}
+			}
+			break;
 		}
 	}
 
