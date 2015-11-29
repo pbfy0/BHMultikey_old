@@ -71,13 +71,17 @@ void KeyboardInterface::ToggleKeyboard(BOOL disabled) {
 
 void KeyboardInterface::HandleInput(USHORT keycode, BOOL keyPressed)
 {
-	if (record_idx != -1 && keyPressed) {
-		//char x[128];
-		//sprintf_s(x, "%02x %02x\n", keycode, order[record_idx]);
-		//OutputDebugStringA(x);
-		//delete[] x;
-		(*keymap)[keycode] = order[record_idx++];
-		if (record_idx >= strlen(order)) record_idx = -1;
+	if (record_idx != -1) {
+		if (keyPressed) {
+			if (keycode == VK_OEM_5) {
+				record_idx = -1;
+				delete keymap;
+				keymap = NULL;
+				return;
+			}
+			(*keymap)[keycode] = order[record_idx++];
+			if (record_idx >= strlen(order)) record_idx = -1;
+		}
 		return;
 	}
 	if (keymap != NULL && (*keymap)[keycode]) {
@@ -136,7 +140,7 @@ void KeyboardInterface::HandleInput(USHORT keycode, BOOL keyPressed)
 			//SetAxis((1 + right - left) * 0x4000, vjoy_id, HID_USAGE_X);
 			SendInput("A_LSX", right - left);
 			break;
-		case 0x1b:
+		case VK_ESCAPE:
 			SendInput("START", keyPressed);
 			break;
 		case '\t':
