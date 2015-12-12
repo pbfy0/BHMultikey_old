@@ -108,7 +108,7 @@ void KeyboardInterface::HandleInput(USHORT keycode, BOOL keyPressed)
 		right = keyPressed;
 		SendInput("A_LSX", right - left);
 	}
-	else if (keycode == VK_SHIFT) {
+	else if (keycode == VK_SHIFT) {// || keycode == VK_LSHIFT || keycode == VK_RSHIFT) {
 		SendInput("RB", keyPressed);
 	}
 	else if (keycode == VK_ESCAPE) {
